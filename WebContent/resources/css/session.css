@@ -1,0 +1,81 @@
+#main {
+	background: url("../imgs/index_background.png") no-repeat center
+		center fixed;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+
+#error-list {
+	color: #c15151;
+}
+
+form {
+	padding: 20px;
+	box-shadow: 0 rgba(0, 0, 0, 0.16), 0 2px 15px 0 rgba(0, 0, 0, 0.12)
+		!important;
+}
+
+h4 {
+	text-align: center;
+}
+
+.btn {
+	border-radius: 0px;
+}
+
+.form-control {
+	border-radius: 0px;
+	margin-bottom: 10px;
+}
+
+p {
+	margin-bottom: 10px;
+	margin-top: 10px;
+	text-align: center;
+}
+
+.blue {
+	color: #337ab7;
+}
+
+.flip {
+	-webkit-perspective: 800;
+	perspective: 800;
+	position: relative;
+}
+
+.flip .card.flipped {
+	-webkit-transform: rotatey(-180deg);
+	transform: rotatey(-180deg);
+}
+
+.flip .card {
+	height: 100%;
+	-webkit-transform-style: preserve-3d;
+	-webkit-transition: 0.5s;
+	transform-style: preserve-3d;
+	transition: 0.5s;
+}
+
+.flip .card .face {
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	z-index: 2;
+}
+
+.flip .card .front {
+	position: absolute;
+	width: 100%;
+	z-index: 1;
+}
+
+.flip .card .back {
+	-webkit-transform: rotatey(-180deg);
+	transform: rotatey(-180deg);
+}
+
+.inner {
+	margin: 0px !important;
+}
