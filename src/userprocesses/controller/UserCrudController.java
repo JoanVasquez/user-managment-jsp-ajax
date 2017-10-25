@@ -60,9 +60,7 @@ public class UserCrudController extends HttpServlet {
 
 			case "POST":
 				boolean requiredParam = Validations.crudParams(request); // VERIFY THAT PARAMETERS ARE PRESENT
-				if (!requiredParam)
-					response.setStatus(400);
-
+				
 				if (requiredParam) {
 					// GET THE PARAMETERS
 					int idUser = Integer.parseInt(request.getParameter("idUser"));
@@ -73,62 +71,61 @@ public class UserCrudController extends HttpServlet {
 					String password = request.getParameter("password");
 
 					errors = Validations.userValidation(firstName, lastName, email, password); // VALIDATE THE USER
-					if (!errors.isEmpty())
-						response.setStatus(400);
-
-					// SAVE THE USER
-					if (action.equalsIgnoreCase("save") && errors.isEmpty()) {
-						user.setFirstName(firstName);
-						user.setLastName(lastName);
-						user.setEmail(email);
-						user.setPassword(AES256.encryption(password));
-
-						if (userDao.insertEntity(user)) {
-							response.setStatus(200);
-							out.println(gSon.toJson(result));
-						}
-					}
-
-					// UPDATE THE USER
-					else if (action.equalsIgnoreCase("update") && errors.isEmpty()) {
-						if (idUser > 0) {
-							user.setIdUser(idUser);
+					if (errors.isEmpty()) {
+						// SAVE THE USER
+						if (action.equalsIgnoreCase("save")) {
 							user.setFirstName(firstName);
 							user.setLastName(lastName);
+							user.setEmail(email);
 							user.setPassword(AES256.encryption(password));
 
-							if (userDao.updateEntity(user)) {
+							if (userDao.insertEntity(user)) {
 								response.setStatus(200);
 								out.println(gSon.toJson(result));
 							}
-						} else {
-							if (errors == null)
-								errors = new HashMap<>();
-							Error error = new Error();
-							error.setMessage("User not found!");
-							response.setStatus(404);
-							errors.put("notfound", error);
 						}
-					}
 
-					// DELETE THE USER
-					else if (action.equalsIgnoreCase("delete") && errors.isEmpty()) {
-						HttpSession httpSession = request.getSession(false);
-						user = (User) httpSession.getAttribute("user");
+						// UPDATE THE USER
+						else if (action.equalsIgnoreCase("update")) {
+							if (idUser > 0) {
+								user.setIdUser(idUser);
+								user.setFirstName(firstName);
+								user.setLastName(lastName);
+								user.setPassword(AES256.encryption(password));
 
-						if (userDao.deleteEntity(idUser)) {
-							response.setStatus(200);
-							if (user.getIdUser() == idUser) {
-								String currentSessionDelete = "{\"redirect\":true}";
-								httpSession.invalidate();
-								out.println(gSon.toJson(currentSessionDelete));
+								if (userDao.updateEntity(user)) {
+									response.setStatus(200);
+									out.println(gSon.toJson(result));
+								}
 							} else {
-								out.println(gSon.toJson(result));
+								if (errors == null)
+									errors = new HashMap<>();
+								Error error = new Error();
+								error.setMessage("User not found!");
+								response.setStatus(404);
+								errors.put("notfound", error);
 							}
 						}
 
-					}
+						// DELETE THE USER
+						else if (action.equalsIgnoreCase("delete")) {
+							HttpSession httpSession = request.getSession(false);
+							user = (User) httpSession.getAttribute("user");
 
+							if (userDao.deleteEntity(idUser)) {
+								response.setStatus(200);
+								if (user.getIdUser() == idUser) {
+									String currentSessionDelete = "{\"redirect\":true}";
+									httpSession.invalidate();
+									out.println(gSon.toJson(currentSessionDelete));
+								} else {
+									out.println(gSon.toJson(result));
+								}
+							}
+
+						}
+					}
+					
 				} else {
 					if (errors == null)
 						errors = new HashMap<>();
@@ -144,8 +141,8 @@ public class UserCrudController extends HttpServlet {
 			if (errors == null)
 				errors = new HashMap<>();
 			Error error = new Error();
-			error.setMessage(ex.getMessage());
 			response.setStatus(500);
+			error.setMessage(ex.getMessage());
 			errors.put("paramserror", error);
 		}
 

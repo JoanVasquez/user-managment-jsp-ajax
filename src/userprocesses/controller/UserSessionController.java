@@ -51,8 +51,6 @@ public class UserSessionController extends HttpServlet {
 		try {
 
 			boolean requiredParam = Validations.sessionParams(request);// VERIFY THAT PARAMETERS ARE PRESENT
-			if (!requiredParam)
-				response.setStatus(400);
 
 			if (requiredParam) {
 				// GET THE PARAMETERS
@@ -61,58 +59,57 @@ public class UserSessionController extends HttpServlet {
 				String password = request.getParameter("password");
 
 				errors = Validations.sessionValidation(email, password);// VALIDATE THE USER
-				if (!errors.isEmpty())
-					response.setStatus(400);
+				if (errors.isEmpty()) {
+					//SIGNIN PROCESS
+					if (action.equalsIgnoreCase("signin")) {
+						user.setEmail(email);
+						user.setPassword(AES256.encryption(password));
 
-				//SIGNIN PROCESS
-				if (action.equalsIgnoreCase("signin") && errors.isEmpty()) {
-					user.setEmail(email);
-					user.setPassword(AES256.encryption(password));
+						user = userDao.signIn(user);
 
-					user = userDao.signIn(user);
-
-					if (user != null) {
-						httpSession.setAttribute("user", user);
-						response.setStatus(200);
-						out.println(gSon.toJson(result));
-					} else {
-						if (errors == null)
-							errors = new HashMap<>();
-						Error error = new Error();
-						error.setMessage("User not found!");
-						response.setStatus(404);
-						errors.put("notfound", error);
+						if (user != null) {
+							httpSession.setAttribute("user", user);
+							response.setStatus(200);
+							out.println(gSon.toJson(result));
+						} else {
+							if (errors == null)
+								errors = new HashMap<>();
+							Error error = new Error();
+							error.setMessage("User not found!");
+							response.setStatus(404);
+							errors.put("notfound", error);
+						}
 					}
-				}
-				
-				//FORGOTTEN PASSWORD PROCESS
-				else if (action.equalsIgnoreCase("forgottenpassword") && errors.isEmpty()) {
+					
+					//FORGOTTEN PASSWORD PROCESS
+					else if (action.equalsIgnoreCase("forgottenpassword")) {
 
-					String pass = userDao.forgottenPassword(email);
+						String pass = userDao.forgottenPassword(email);
 
-					if (pass != null) {
-						SendForgottenPassword.sendEmail(email, pass);
-						response.setStatus(200);
-						out.println(gSon.toJson(result));
-					} else {
-						if (errors == null)
-							errors = new HashMap<>();
-						Error error = new Error();
-						error.setMessage("Password not found!");
-						response.setStatus(404);
-						errors.put("notfound", error);
+						if (pass != null) {
+							SendForgottenPassword.sendEmail(email, pass);
+							response.setStatus(200);
+							out.println(gSon.toJson(result));
+						} else {
+							if (errors == null)
+								errors = new HashMap<>();
+							Error error = new Error();
+							error.setMessage("Password not found!");
+							response.setStatus(404);
+							errors.put("notfound", error);
+						}
+
 					}
-
+					
+					//LOGOUT PROCESS
+					else if (action.equalsIgnoreCase("logout") && errors.isEmpty()) {
+						if (httpSession != null) {
+							httpSession.invalidate();
+							out.println(gSon.toJson(result));
+						}
+					}	
 				}
-				
-				//LOGOUT PROCESS
-				else if (action.equalsIgnoreCase("logout") && errors.isEmpty()) {
-					if (httpSession != null) {
-						httpSession.invalidate();
-						out.println(gSon.toJson(result));
-					}
-				}
-
+					
 			} else {
 				if (errors == null)
 					errors = new HashMap<>();

@@ -47,7 +47,7 @@ public class UserDaoTest {
 		dbConnectionProperties.setDriver("com.mysql.jdbc.Driver");
 		dbConnectionProperties.setUrl("jdbc:mysql://localhost:3306/userprocesses");
 		dbConnectionProperties.setUser("root");
-		dbConnectionProperties.setPassword("pass22");
+		dbConnectionProperties.setPassword("pass");
 		dbConnection = DBConnection.openConnection(dbConnectionProperties);
 
 		prepareStatement = dbConnection.getConnection().prepareStatement("SELECT iduser FROM user LIMIT 1");
@@ -101,5 +101,4 @@ public class UserDaoTest {
 		}
 
 	}
-
 }

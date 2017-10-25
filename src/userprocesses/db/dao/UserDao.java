@@ -27,7 +27,7 @@ public class UserDao extends Queries implements Crud<User> {
 		dbConnectionProperties.setDriver("com.mysql.jdbc.Driver");// THE DRIVER - MYSQL IN THIS CASE
 		dbConnectionProperties.setUrl("jdbc:mysql://localhost:3306/userprocesses");// DATABASE URL
 		dbConnectionProperties.setUser("root");// DATABASE USER
-		dbConnectionProperties.setPassword("pass22");// DATABASE PASSWORD
+		dbConnectionProperties.setPassword("pass");// DATABASE PASSWORD
 		dbConnection = DBConnection.openConnection(dbConnectionProperties);
 	}
 

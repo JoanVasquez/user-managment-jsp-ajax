@@ -7,41 +7,18 @@ $(document).ready(function() {
     var offSet = (page - 1) * perPage;
     var limit = page * perPage;
     var users = null;
-    var searchString = '';
 
     onInit();
 
-    //DOM VARS
-    var inputSearch = $('#search');
-    var ulPaging = $('#pagination');
-    var liPaging;
-    var liFirst;
-    var liLast;
-    var lastPage;
-    var tblUser = $('#tbl-users');
-    var btnDeleteUser = $('#btn-delete-user');
-
     //EVENT FUNCTIONS
     (function() {
-        //FILTER EVENT
-        inputSearch.keyup(function() {
-            searchString = inputSearch.val();
-            if (searchString) {
-                ulPaging.hide();
-                generateTable('filter');
-            } else {
-                ulPaging.show();
-                generateTable('init');
-            }
-        });
-        //END FILTER EVENT
-
         //SET UPDATE VALUES - EVENT
-        tblUser.on('click', '.btn-update', function(event) {
+        $("#tbl-user").on('click', '.btn-update', function(event) {
             event.preventDefault();
             var index = $(this).data('index');
             $.each(users, function(i, value) {
                 if (index == value.idUser) {
+                	console.log(value);
                     $('input[name="firstname"]').val(value.firstName);
                     $('input[name="lastname"]').val(value.lastName);
                     $('input[name="email"]').val(value.email);
@@ -69,6 +46,7 @@ $(document).ready(function() {
                     "action": "update"
                 }
                 updateUser(data);
+                onInit();
             } else {
                 var json = {
                     "notmatch": {
@@ -93,79 +71,24 @@ $(document).ready(function() {
         //END CLOSE ALERTS EVENT
 
         //DELETE USER EVENT
-        tblUser.on('click', '.btn-delete', function(event) {
+        $("#tbl-user").on('click', '.btn-delete', function(event) {
             event.preventDefault();
             var index = $(this).data('index');
-
-            btnDeleteUser.on('click', function(event) {
+            
+            //MODAL DELETE
+            $('#btn-delete-user').on('click', function(event) {
                 event.preventDefault();
                 deleteUser(index);
-                $('#deleteModal').modal('hide');
+                isDeleted = true;
+                $('#deleteModal').modal("hide");
+                $("#tbl-user").DataTable().row($(this).parents("tr")).remove().draw();
             });
+            
+            
 
         });
         //END DELETE USER EVENT
-
-        //GO TO FIRST PAGE EVENT
-        ulPaging.on('click', '#start-page', function(event) {
-            event.preventDefault();
-            page = 1;
-            offSet = (page - 1) * perPage;
-            limit = page * perPage;
-
-            if (!liFirst.parent().hasClass('disabled')) generateTable('init');
-
-            liFirst.parent().removeClass('disabled').addClass('disabled');
-
-            liLast.parent().removeClass('disabled');
-
-            liPaging.removeClass('active');
-
-            liPaging.first().addClass('active');
-
-        });
-        //END GO TO FIRST PAGE EVENT
-
-        //PAGE NAVS EVENT
-        ulPaging.on('click', '#page-links', function(event) {
-            event.preventDefault();
-            page = parseInt($(this).text());
-
-            page > 1 ? liFirst.parent().removeClass('disabled') : liFirst.parent().addClass('disabled');
-
-            offSet = (page - 1) * perPage;
-            limit = page * perPage;
-
-            page >= lastPage ? liLast.parent().addClass('disabled') : liLast.parent().removeClass('disabled');
-
-            if (!$(this).parent().hasClass('active')) generateTable('init');
-
-            liPaging.removeClass('active');
-
-            $(this).parent().addClass('active');
-
-        });
-
-        //END PAGE NAVS EVENT
-        ulPaging.on('click', '#last-page', function(event) {
-            event.preventDefault();
-            page = lastPage;
-
-            offSet = (page - 1) * perPage;
-            limit = page * perPage;
-
-            if (!liLast.parent().hasClass('disabled')) generateTable('init');
-
-            liPaging.removeClass('active');
-
-            liPaging.last().addClass('active');
-
-            liFirst.parent().removeClass('disabled');
-            liLast.parent().addClass('disabled');
-
-        });
-        //GO TO LAST PAGE EVENT
-
+        
         //LOG OUT EVENT
         $('#btn-logout').on('click', function(event) {
             event.preventDefault();
@@ -186,10 +109,7 @@ $(document).ready(function() {
 
             success: function(result) {
                 users = result;
-                totalPages = users.length;
-
-                generatePagingButtons();
-                generateTable('init');
+                generateTable();
 
             },
 
@@ -199,47 +119,28 @@ $(document).ready(function() {
         });
     }
 
-    //CREATE PAGING BUTTONS
-    function generatePagingButtons() {
-        console.log('***generatePagingButtons***');
-        
-        var numPages = Math.ceil(totalPages / perPage); //GET THE AMOUNT OF PAGES
-        
-        if (numPages > 0) {
-            ulPaging.children('li').remove();
-            ulPaging.append('<li class="disabled"><a href="#" id="start-page"> << </a> </li>');
-
-            for (var i = 0; i < numPages; i++) ulPaging.append('<li class="li-page"><a href="#" id="page-links">' + (i + 1) + '</a></li>');
-
-            ulPaging.append('<li><a href="#" id="last-page"> >> </a> </li>');
-
-            liFirst = $('#start-page');
-            lastPage = Math.ceil(totalPages / perPage);
-            liLast = $('#last-page');
-
-            liPaging = $('.li-page');
-
-            liPaging.first().addClass('active');
-        }
-    }
-
     //CREATE THE TABLE WITH THE USERS
-    function generateTable(isInitOrFilter) {
+    function generateTable() {
         console.log('***generateTable***');
-
-        tblUser.children('tr').remove();
-
-        if (isInitOrFilter === 'init') {
-            for (var i = offSet; i < limit; i++)
-                if (users[i]) tblUser.append('<tr><td><button type="button" class="btn btn-primary btn-update" data-index="' + users[i].idUser + '" data-toggle="modal" data-target="#updateModal"><i class="glyphicon glyphicon-edit"></i></button> <button type="button" class="btn btn-danger btn-delete" data-index="' + users[i].idUser + '" data-toggle="modal" data-target="#deleteModal"><i class="glyphicon glyphicon-remove"></i></button></td><td>' + users[i].idUser + '</td><td>' + users[i].firstName + '</td><td>' + users[i].lastName + '</td><td>' + users[i].email + '</td></tr>');
-                else break;
-        } else {
-            $.each(users, function(index, value) {
-                if ((users[index].firstName.toLowerCase().includes(searchString.toLowerCase())) || (users[index].lastName.toLowerCase().includes(searchString.toLowerCase())) ||
-                    (users[index].email.toLowerCase().includes(searchString.toLowerCase())))
-                    tblUser.append('<tr><td><button type="button" class="btn btn-primary btn-update" data-index="' + value.idUser + '" data-toggle="modal" data-target="#updateModal"><i class="glyphicon glyphicon-edit"></i></button> <button type="button" class="btn btn-danger btn-delete" data-index="' + value.idUser + '" data-toggle="modal" data-target="#deleteModal"><i class="glyphicon glyphicon-remove"></i></button></td><td>' + value.idUser + '</td><td>' + value.firstName + '</td><td>' + value.lastName + '</td><td>' + value.email + '</td></tr>');
-            });
-        }
+        
+        var userToArray = [];
+        $.each(users, function(index, value){
+        	if(users[index])
+        		userToArray.push([value.idUser, value.firstName, value.lastName, value.email, '<button type="button" class="btn btn-primary btn-update" data-index="' + value.idUser + '" data-toggle="modal" data-target="#updateModal"><i class="glyphicon glyphicon-edit"></i></button> <button type="button" class="btn btn-danger btn-delete" data-index="' + value.idUser + '" data-toggle="modal" data-target="#deleteModal"><i class="glyphicon glyphicon-remove"></i></button>'])
+        });
+        
+        
+        $('#tbl-user').DataTable({
+        	data: userToArray,
+        	columns: [
+        		{title: 'id User'},
+        		{title: 'First Name'},
+        		{title: 'Last Name'},
+        		{title: 'email'},
+        		{title: 'Actions'}
+        	],
+        	destroy: true
+        });
     }
 
     //UPDATE AN USER
@@ -252,16 +153,17 @@ $(document).ready(function() {
             data: user,
 
             success: function(result) {
-                var json = JSON.parse(result);
+                var json = result;
+                console.log(result);
                 if (json.success) {
                     successFulHandler(json, 'modalmessage');
-                    onInit();
-                    console.log('called init...');
+                    //onInit();
+                    //console.log('called init...');
                 }
             },
 
             error: function(request) {
-                var json = JSON.parse(request.responseText);
+                var json = request.responseText;
                 errorHandler(json, 'modalerror');
             }
         });
@@ -293,7 +195,7 @@ $(document).ready(function() {
             },
 
             error: function(request) {
-                var json = JSON.parse(request.responseText);
+                var json = request.responseText;
                 errorHandler(json, 'panelerror');
             }
         });
@@ -319,7 +221,7 @@ $(document).ready(function() {
             },
 
             error: function(request) {
-                var json = JSON.parse(request.responseText);
+                var json = request.responseText;
                 errorHandler(json, 'panelerror');
             }
         });
